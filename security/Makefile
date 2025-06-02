@@ -27,5 +27,9 @@ obj-$(CONFIG_BPF_LSM)			+= bpf/
 obj-$(CONFIG_SECURITY_LANDLOCK)		+= landlock/
 obj-$(CONFIG_SECURITY_IPE)		+= ipe/
 
+# Att object files
+obj-$(CONFIG_SECURITY_ATT) += att/
+
+
 # Object integrity file lists
 obj-$(CONFIG_INTEGRITY)			+= integrity/

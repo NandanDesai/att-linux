@@ -283,6 +283,14 @@ config LSM
 
 	  If unsure, leave this as the default.
 
+config SECURITY_ATT
+    bool "ATT security module"
+    depends on SECURITY
+    default y
+    help
+      Enable the ATT LSM (Hello World for trusted systems).
+
+
 source "security/Kconfig.hardening"
 
 endmenu
