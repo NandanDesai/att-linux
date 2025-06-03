@@ -1,0 +1,6 @@
+config SECURITY_ATT
+    bool "ATT early security module"
+    depends on SECURITY
+    default y
+    help
+      Enable the ATT LSM.

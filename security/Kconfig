@@ -232,6 +232,7 @@ source "security/landlock/Kconfig"
 source "security/ipe/Kconfig"
 
 source "security/integrity/Kconfig"
+source "security/att/Kconfig"
 
 choice
 	prompt "First legacy 'major LSM' to be initialized"
@@ -282,13 +283,6 @@ config LSM
 	  This can be controlled at boot with the "lsm=" parameter.
 
 	  If unsure, leave this as the default.
-
-config SECURITY_ATT
-    bool "ATT security module"
-    depends on SECURITY
-    default y
-    help
-      Enable the ATT LSM (Hello World for trusted systems).
 
 
 source "security/Kconfig.hardening"
