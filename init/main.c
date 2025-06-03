@@ -104,8 +104,6 @@
 #include <linux/pidfs.h>
 #include <linux/ptdump.h>
 
-#include <linux/att.h>
-
 #include <net/net_namespace.h>
 
 #include <asm/io.h>
@@ -919,10 +917,6 @@ void start_kernel(void)
 	boot_cpu_init();
 	page_address_init();
 	pr_notice("%s", linux_banner);
-
-	if (IS_ENABLED(CONFIG_SECURITY_ATT)) {
-		att_hello_world();
-	}
 
 	setup_arch(&command_line);
 	/* Static keys and static calls are needed by LSMs */
