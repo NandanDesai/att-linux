@@ -6,6 +6,9 @@
 #include <linux/init.h>         // For __init, __ro_after_init
 #include <linux/kernel.h>       // For pr_info(), printk levels
 #include <linux/array_size.h>   // For ARRAY_SIZE
+#include <linux/tpm.h>          // For TPM-related operations
+#include <linux/kernel.h>       // For panic() function
+#include <linux/init.h>         // For late_initcall function
 
 #define ATT_MODULE_NAME "att"
 
@@ -20,6 +23,7 @@ static struct lsm_id att_lsmid __ro_after_init = {
 /* Forward declaration of hook functions */
 static int att_bprm_check(struct linux_binprm *bprm);
 static int att_inode_permission(struct inode *inode, int mask);
+static int __init att_init(void);
 
 /* Hook list */
 static struct security_hook_list att_hooks[] __ro_after_init = {
@@ -69,8 +73,23 @@ static __init int att_lsm_init(void)
     return 0;
 }
 
+/* Actual init call for the att module */
+static int __init att_init(void){
+    struct tpm_chip *att_tpm_chip = tpm_default_chip();
+	if (!att_tpm_chip){
+		pr_info("No TPM chip found, exiting!\n");
+        panic("TPM not found. Aborting boot for security reasons.\n");
+        return -1;
+    }
+    pr_info("TPM chip found by att module.\n");
+    return 0;
+}
+
 // Define att module as an early launch module
 DEFINE_EARLY_LSM(att) = {
     .name = "att",
     .init = att_lsm_init,
 };
+
+
+late_initcall(att_init);
