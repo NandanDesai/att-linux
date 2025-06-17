@@ -9,6 +9,7 @@
 #include <linux/tpm.h>          // For TPM-related operations
 #include <linux/kernel.h>       // For panic() function
 #include <linux/init.h>         // For late_initcall function
+#include "tpm_extend_example.h"
 
 #define ATT_MODULE_NAME "att"
 
@@ -23,7 +24,7 @@ static struct lsm_id att_lsmid __ro_after_init = {
 /* Forward declaration of hook functions */
 static int att_bprm_check(struct linux_binprm *bprm);
 static int att_inode_permission(struct inode *inode, int mask);
-static int __init att_init(void);
+//static int __init att_init(void);
 
 /* Hook list */
 static struct security_hook_list att_hooks[] __ro_after_init = {
@@ -47,6 +48,7 @@ static int att_bprm_check(struct linux_binprm *bprm)
 static int att_inode_permission(struct inode *inode, int mask)
 {
     // It's good practice to check if inode is not NULL
+    /*
     if (inode && inode->i_sb) { // Check inode and superblock for i_ino
         pr_info("att: inode_permission on inode %lu (dev %s) mask %x\n",
                 inode->i_ino, inode->i_sb->s_id, mask);
@@ -55,6 +57,7 @@ static int att_inode_permission(struct inode *inode, int mask)
     } else {
         pr_warn("att: inode_permission called with NULL inode\n");
     }
+    */
     // Return 0 to allow the operation, or an error code (e.g., -EPERM) to deny.
     // Returning 0 effectively means this hook doesn't block anything yet.
     return 0;
@@ -73,7 +76,8 @@ static __init int att_lsm_init(void)
     return 0;
 }
 
-/* Actual init call for the att module */
+/*
+// Actual init call for the att module
 static int __init att_init(void){
     struct tpm_chip *att_tpm_chip = tpm_default_chip();
 	if (!att_tpm_chip){
@@ -84,6 +88,7 @@ static int __init att_init(void){
     pr_info("TPM chip found by att module.\n");
     return 0;
 }
+*/
 
 // Define att module as an early launch module
 DEFINE_EARLY_LSM(att) = {
@@ -92,4 +97,4 @@ DEFINE_EARLY_LSM(att) = {
 };
 
 
-late_initcall(att_init);
+late_initcall(tpm_extend_example_init);
