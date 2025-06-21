@@ -10,6 +10,7 @@
 #include <linux/kernel.h>       // For panic() function
 #include <linux/init.h>         // For late_initcall function
 #include "tpm_extend_example.h"
+#include "att_queue.h"
 
 #define ATT_MODULE_NAME "att"
 
@@ -18,6 +19,8 @@ static struct lsm_id att_lsmid __ro_after_init = {
     .name = ATT_MODULE_NAME,
     .id = LSM_ID_ATT,
 };
+
+
 
 //int att_enabled_boot __initdata = 1;
 
@@ -35,13 +38,23 @@ static struct security_hook_list att_hooks[] __ro_after_init = {
 /* Hook functions */
 static int att_bprm_check(struct linux_binprm *bprm)
 {
-    // It's good practice to check if bprm and bprm->filename are not NULL
+    int ret;
+
     if (bprm && bprm->filename) {
-        pr_info("att: checking bprm for executable: %s\n", bprm->filename);
+        const char *filename = bprm->filename;
+        size_t len = strnlen(filename, ATT_MAX_MSG_SIZE - 1);  // Limit to max size
+
+        pr_info("att: checking bprm for executable: %s\n", filename);
+
+        // Enqueue filename for processing by the secure thread
+        ret = att_enqueue_message((const unsigned char *)filename, len);
+        if (ret)
+            pr_warn("att: enqueue failed (%d) for filename: %s\n", ret, filename);
     } else {
         pr_warn("att: bprm_check called with NULL bprm or filename\n");
     }
-    // Return 0 to allow the operation, or an error code (e.g., -EPERM) to deny.
+
+    // Always allow execution for now
     return 0;
 }
 
@@ -66,6 +79,7 @@ static int att_inode_permission(struct inode *inode, int mask)
 /* LSM initialization function */
 static __init int att_lsm_init(void)
 {
+    
     pr_info("att_lsm: Initializing ATT LSM\n");
 
     /*
@@ -73,8 +87,19 @@ static __init int att_lsm_init(void)
      * The lsm_id provides the name used for identification.
      */
     security_add_hooks(att_hooks, ARRAY_SIZE(att_hooks), &att_lsmid);
+
+    
     return 0;
 }
+
+/*
+static void __exit att_exit(void) {
+    pr_info("att_lsm: Shutting down ATT LSM\n");
+    if (att_thread)
+        kthread_stop(att_thread);  // Signal thread to exit
+    kfifo_free(&att_fifo);
+}
+*/
 
 /*
 // Actual init call for the att module

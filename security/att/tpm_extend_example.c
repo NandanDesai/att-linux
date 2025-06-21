@@ -5,12 +5,32 @@
 #include <linux/crypto.h>       // For crypto_alloc_shash and related cryptographic interfaces
 #include <crypto/hash.h>        // For hashing (shash_desc, crypto_shash_digest, etc.)
 #include "tpm_extend_example.h"
+#include "att_queue.h"
 
 #define PCR_INDEX 23
 #define SHA256_DIGEST_SIZE 32
 
+// Kthread task strucutre (the thread that actually extends events into the TPM)
+static struct task_struct *att_thread;
+
 int __init tpm_extend_example_init(void)
 {
+
+
+	/* TODO: Move the below code to its separate module */
+	/* The below code should be executed in late_initcall stage. */
+	int ret;
+    ret = kfifo_alloc(&att_fifo, ATT_FIFO_SIZE * sizeof(unsigned char[ATT_MAX_MSG_SIZE]), GFP_KERNEL);
+    if (ret)
+        return ret;
+
+    att_thread = kthread_run(att_worker_thread, NULL, "att_secure_worker");
+    if (IS_ERR(att_thread)) {
+        kfifo_free(&att_fifo);
+        return PTR_ERR(att_thread);
+    }
+	/* TODO: Move the above code */
+
 	struct tpm_chip *chip;
 	struct tpm_digest *digests;
 	const char *data = "Hello World";
