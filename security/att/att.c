@@ -11,6 +11,7 @@
 #include <linux/init.h>         // For late_initcall function
 #include "tpm_extend_example.h"
 #include "att_queue.h"
+#include "att_tree.h"
 
 #define ATT_MODULE_NAME "att"
 
@@ -48,8 +49,47 @@ static int att_bprm_check(struct linux_binprm *bprm)
 
         // Enqueue filename for processing by the secure thread
         ret = att_enqueue_message((const unsigned char *)filename, len);
-        if (ret)
-            pr_warn("att: enqueue failed (%d) for filename: %s\n", ret, filename);
+        if (ret){
+            pr_warn("att-queue: enqueue failed (%d) for filename: %s\n", ret, filename);
+        }
+
+        /* TESTING THE TREE-RELATED FUNCTIONS */
+        pid_t pid = current->pid;
+        pid_t ppid = task_ppid_nr(current);
+        pid_t ancestors[16];
+        int ret, i, depth;
+
+        if (!filename)
+            return 0;
+
+        // 1. Add current process to the tree
+        ret = add_process_to_tree(pid, ppid, filename);
+        if (ret != 0) {
+            pr_warn("att-tree: Failed to add process PID %d to tree (error %d)\n", pid, ret);
+            return 0;
+        }
+
+        pr_info("att-tree: Added process PID %d (%s), parent PID %d\n", pid, filename, ppid);
+
+        // 2. Get full ancestry (parent → grandparent → ...)
+        depth = get_ancestry(pid, ancestors, ARRAY_SIZE(ancestors));
+        if (depth < 0) {
+            pr_warn("att-tree: Could not retrieve ancestry for PID %d (error %d)\n", pid, depth);
+            return 0;
+        }
+
+        // 3. Print ancestry with filenames
+        for (i = 0; i < depth; i++) {
+            struct proc_tree_node *node = find_node_iterative(ancestors[i]);
+            if (node) {
+                pr_info("att-tree: Ancestor #%d -> PID %d, filename: %s\n", i, node->pid, node->filename);
+            } else {
+                pr_info("att-tree: Ancestor #%d -> PID %d (not found in tree)\n", i, ancestors[i]);
+            }
+        }
+
+
+        
     } else {
         pr_warn("att: bprm_check called with NULL bprm or filename\n");
     }
