@@ -12,6 +12,7 @@
 #include "tpm_extend_example.h"
 #include "att_queue.h"
 #include "att_tree.h"
+#include "att_tpm_event_list.h"
 
 #define ATT_MODULE_NAME "att"
 
@@ -65,7 +66,7 @@ static int att_bprm_check(struct linux_binprm *bprm)
         // 1. Add current process to the tree
         ret = add_process_to_tree(pid, ppid, filename);
         if (ret != 0) {
-            pr_warn("att-tree: Failed to add process PID %d to tree (error %d)\n", pid, ret);
+            pr_warn("att-tree: Failed to add process PID %d, Filename: %s to tree (error %d)\n", pid, filename, ret);
             return 0;
         }
 
@@ -82,14 +83,25 @@ static int att_bprm_check(struct linux_binprm *bprm)
         for (i = 0; i < depth; i++) {
             struct proc_tree_node *node = find_node_iterative(ancestors[i]);
             if (node) {
-                pr_info("att-tree: Ancestor #%d -> PID %d, filename: %s\n", i, node->pid, node->filename);
+                pr_info("att-tree: Ancestor #%d: PID %d, filename: %s\n", i, node->pid, node->filename);
             } else {
-                pr_info("att-tree: Ancestor #%d -> PID %d (not found in tree)\n", i, ancestors[i]);
+                pr_info("att-tree: Ancestor #%d: PID %d (not found in tree)\n", i, ancestors[i]);
             }
         }
 
 
-        
+        /* 1) Add this exec event (path + PID) to our TPM list */
+        ret = add_tpm_app_event(bprm->filename, current->pid);
+        if (ret) {
+            pr_err("att_tpm_event_list: failed to add event for PID %d (err=%d)\n",
+                current->pid, ret);
+        } else {
+            pr_info("att_tpm_event_list: added PID %d -> %s\n",
+                    current->pid, bprm->filename);
+        }
+
+        /* 2) Print all stored events (only PID + path) */
+        print_tpm_event_list();
     } else {
         pr_warn("att: bprm_check called with NULL bprm or filename\n");
     }

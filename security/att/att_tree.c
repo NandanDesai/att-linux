@@ -138,7 +138,7 @@ int get_ancestry(pid_t pid, pid_t *ancestors, size_t max_depth)
     spin_lock(&tree_lock);
 
     node = node->parent; // Start with parent
-    while (node && depth < max_depth) {
+    while (node && (depth < max_depth)) {
         ancestors[depth++] = node->pid;
         node = node->parent;
     }
