@@ -6,7 +6,7 @@
 #include <crypto/hash.h>        // For hashing (shash_desc, crypto_shash_digest, etc.)
 #include "tpm_extend_example.h"
 #include "att_queue.h"
-
+#include "data_structs/generic_list.h"
 #define PCR_INDEX 23
 #define SHA256_DIGEST_SIZE 32
 
@@ -29,6 +29,8 @@ int __init tpm_extend_example_init(void)
         kfifo_free(&att_fifo);
         return PTR_ERR(att_thread);
     }
+
+    generic_list_stress_init();
 	/* TODO: Move the above code */
 
 	struct tpm_chip *chip;
