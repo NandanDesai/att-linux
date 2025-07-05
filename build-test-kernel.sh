@@ -12,10 +12,10 @@ export KCACHE="ccache"
 make O=$BUILD_DIR defconfig
 
 # Enable KUnit and your module’s test-tristate
-scripts/config --file .kunit/.config --enable KUNIT
-scripts/config --file .kunit/.config --enable KUNIT_SANITY
-scripts/config --file .kunit/.config --enable KUNIT_REPORT
-scripts/config --file .kunit/.config --enable ATT_KUNIT_TEST
+scripts/config --file $BUILD_DIR/.config --enable KUNIT
+scripts/config --file $BUILD_DIR/.config --enable KUNIT_SANITY
+scripts/config --file $BUILD_DIR/.config --enable KUNIT_REPORT
+scripts/config --file $BUILD_DIR/.config --enable ATT_KUNIT_TEST
 
 # Fold in defaults and resolve dependencies
 make O=$BUILD_DIR olddefconfig
