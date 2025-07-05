@@ -1,0 +1,6 @@
+config ATT_KUNIT_TEST
+    tristate "KUnit tests for att LSM"
+    depends on KUNIT
+    default n
+    help
+      Enable unit tests for the att security module.

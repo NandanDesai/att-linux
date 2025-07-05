@@ -1,0 +1,1 @@
+obj-$(CONFIG_ATT_KUNIT_TEST) += test_generic_list.o
