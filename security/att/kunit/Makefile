@@ -1,1 +1,1 @@
-obj-$(CONFIG_ATT_KUNIT_TEST) += test_generic_list.o
+obj-$(CONFIG_ATT_KUNIT_TEST) += test_generic_list_add.o test_generic_list_delete.o test_generic_list_get_copy.o
