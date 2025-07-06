@@ -1,22 +1,4 @@
 #include "includes/generic_list.h"
-#include <linux/slab.h>    // Required for kmalloc/kfree
-#include <linux/errno.h>   // Required for error codes
-#include <linux/string.h>  // Required for memcpy/memset
-#include <linux/kernel.h>  // Required for SIZE_MAX
-
-/*
- * NOTE: The definitions for spin_lock_init, spin_lock, spin_unlock,
- * and the struct generic_list are assumed to be in "includes/generic_list.h"
- *
- * struct generic_list {
- * spinlock_t lock;
- * void      *data;
- * u8        *free_flags;
- * size_t     elem_size;
- * size_t     length;
- * size_t     capacity;
- * };
- */
 
 
 int generic_list_init(struct generic_list *l, size_t elem_size)
