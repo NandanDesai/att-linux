@@ -6,4 +6,4 @@ config SECURITY_ATT
       Enable the ATT LSM.
 
 # KUnit tests for the ATT LSM
-source "security/att/kunit/Kconfig"
+source "security/att/tests/Kconfig"
