@@ -230,8 +230,11 @@ int generic_list_get_copy(struct generic_list *l,
 
 
 /*
-CAUTION: PLEASE TRY TO AVOID THIS FUNCTION. 
-I'm keeping this here to show why `generic_list_get_copy` is necessary.
+CAUTION: Use this function only in the same thread where add and delete
+functions are being called. For cross-thread GET, use `generic_list_get_copy`.
+
+This function cannot be safe even if it uses locks. 
+See the warning message below.
 */
 void *generic_list_get(struct generic_list *l, size_t index)
 {

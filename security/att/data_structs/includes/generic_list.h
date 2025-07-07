@@ -79,6 +79,10 @@ int generic_list_get_copy(struct generic_list *l,
  * Returns a pointer to the element or NULL if invalid or free.
  * WARNING: The returned pointer is only valid while the internal
  * spinlock remains held; callers must not use after release.
+ * 
+ * CAUTION: Use this function only in the same thread where add and delete
+ * functions are being called. For cross-thread GET, use `generic_list_get_copy`.
+ * This function cannot be "safe" even if it uses locks. 
  */
 void *generic_list_get(struct generic_list *l, size_t index);
 
