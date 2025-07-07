@@ -270,3 +270,58 @@ int att_app_add_ancestor(pid_t pid,
     return 0;
 }
 
+int att_app_delete(pid_t pid)
+{
+    size_t          i       = 0;
+    size_t          cap     = 0;
+    size_t          idx     = 0;
+    struct att_app *app     = NULL;
+    bool            found   = false;
+    int             ret     = 0;
+
+    /* Ensure the global list is initialized */
+    if (!g_app_list_inited) {
+        pr_err("att_app_delete: g_app_list not initialized\n");
+        return -EINVAL;
+    }
+
+    /* Locate the entry under lock */
+    spin_lock(&g_app_list.lock);
+    cap = g_app_list.capacity;
+    for (i = 0; i < cap; i++) {
+        if (g_app_list.free_flags[i] == 0) {
+            struct att_app *candidate =
+                (struct att_app *)((u8 *)g_app_list.data
+                                   + i * g_app_list.elem_size);
+            if (candidate->app_info.pid == pid) {
+                app   = candidate;
+                idx   = i;
+                found = true;
+                break;
+            }
+        }
+    }
+    spin_unlock(&g_app_list.lock);
+
+    if (!found) {
+        pr_err("att_app_delete: no entry for pid %d\n", pid);
+        return -ESRCH;
+    }
+
+    /* Free all nested lists inside the inline struct */
+    generic_list_free(&app->app_events);
+    generic_list_free(&app->ancestors);
+    generic_list_free(&app->app_info.failed_sig_libs);
+    generic_list_free(&app->app_info.missing_sig_libs);
+
+    /* Remove the slot from the global list (clears the by-value struct) */
+    ret = generic_list_delete(&g_app_list, idx);
+    if (ret) {
+        pr_err("att_app_delete: generic_list_delete failed for pid %d idx %zu (%d)\n",
+               pid, idx, ret);
+        return ret;
+    }
+
+    pr_info("att_app_delete: removed entry for pid %d (slot %zu)\n", pid, idx);
+    return 0;
+}

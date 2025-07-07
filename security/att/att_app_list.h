@@ -148,4 +148,22 @@ int att_app_add_app_event(pid_t pid,
 int att_app_add_ancestor(pid_t pid,
     const struct elf_binary_info *ancestor);
 
+
+/**
+ * att_app_delete – remove an att_app by PID from g_app_list
+ * @pid:  PID of the application to delete
+ *
+ * Finds the matching entry in the global list, frees all its nested
+ * generic_list storage, and removes the slot.  Since we store the
+ * struct by-value in the list’s internal buffer, we do NOT kfree() the
+ * pointer itself—generic_list_delete() will reclaim the slot.
+ *
+ * Returns 0 on success,
+ *        -EINVAL if the global list isn’t initialized,
+ *        -ESRCH  if no entry for that PID is found,
+ *        or the error from generic_list_delete().
+ */
+int att_app_delete(pid_t pid);
+
+
 #endif
